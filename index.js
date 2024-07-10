@@ -13,9 +13,7 @@ const redirectUri = process.env.REDIRECT_URI;
 const frontend_domain = process.env.FRONTEND_DOMAIN;
 
 // Enable CORS for your frontend domain
-app.use(cors({
-    origin: `${frontend_domain}`
-}));
+app.use(cors());
 
 app.get('/login', (req, res) => {
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=repo`;
