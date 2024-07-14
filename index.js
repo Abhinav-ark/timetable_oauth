@@ -16,12 +16,25 @@ const frontend_domain = process.env.FRONTEND_DOMAIN;
 app.use(cors());
 
 app.get('/login', (req, res) => {
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=repo`;
-    res.redirect(githubAuthUrl);
+    try {
+        // Ensure the page parameter is present
+        const page = req.query.page;
+        if (!page) {
+            return res.status(400).send('Missing required parameter: page');
+        }
+
+        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(`${redirectUri}?page=${page}`)}&scope=repo`;
+        res.redirect(githubAuthUrl);
+    } catch (error) {
+        console.error('Error in /login endpoint:', error);
+        res.status(500).send('An unexpected error occurred. Please try again later.');
+    }
 });
+
 
 app.get('/callback', async (req, res) => {
     const code = req.query.code;
+    const page = req.query.page;
 
     try {
         const response = await axios.post('https://github.com/login/oauth/access_token', {
@@ -36,7 +49,7 @@ app.get('/callback', async (req, res) => {
         });
 
         const accessToken = response.data.access_token;
-        res.redirect(`${frontend_domain}/editTasks.html?access_token=${accessToken}`);
+        res.redirect(`${frontend_domain}/editTasks.html?access_token=${accessToken}&page=${page}`);
     } catch (error) {
         res.send('Error during authentication: ' + error.message);
     }
